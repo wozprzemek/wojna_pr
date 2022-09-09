@@ -47,8 +47,12 @@ void mainLoop()
                     }
                 }
                 
-                if (free > 0 && fullACK()) { // TODO fullACK
-                    
+                if (free > 0 && priority()) { // there are free docks and the process received larger timestamps from all others
+                    if (requestQueue.size > 0) {
+                        if (requestQueue[0].second == rank) { // process is at the top of the queue
+                            // TODO critical section
+                        }
+                    }
                 }
                 else {
                     continue;
@@ -57,7 +61,25 @@ void mainLoop()
                 break;
                 
             case state_t::WAITING_MECH:
-                // TODO mech critical section
+                int free = 0;
+                // check if there are enough free mechanics
+                for (int i=0; i<size; i++) {
+                    if (mechStatus[i] == 0) {
+                        free++;
+                    }
+                }
+
+                if (free > 0 && priority()) { // there are enough free mechanics and the process received larger timestamps from all others
+                    if (requestQueue.size > 0) {
+                        if (requestQueue[0].second == rank) { // process is at the top of the queue
+                            // TODO critical section
+                        }
+                    }
+                }
+                else {
+                    continue;
+                };
+
                 break;
 
             case state_t::IN_REPAIR:

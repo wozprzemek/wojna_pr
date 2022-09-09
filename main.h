@@ -37,7 +37,7 @@ extern std::vector<int> dockACK;
 extern std::vector<int> mechACK;
 extern std::vector<int> dockStatus;
 extern std::vector<int> mechStatus;
-extern std::vector<int> requestQueue;
+extern std::vector<std::pair<int, int>> requestQueue;
 
 /* Packet structure */
 #define FIELDNO 3
@@ -50,8 +50,8 @@ typedef struct {
 extern MPI_Datatype MPI_PACKET_T;
 
 void updateLamportTime(int recv);
-bool dockAvailability();
-bool mechanicAvailability();
+bool priority();
+void addToRequestQueue(std::pair<int, int>);
 
 /* Print formatting */
 #ifdef DEBUG

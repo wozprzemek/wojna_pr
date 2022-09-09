@@ -84,8 +84,18 @@ void updateLamportTime(int recv) {
     lamportTime = std::max(recv, lamportTime) + 1;
 }
 
-bool fullACK() {
-    
+bool priority() {
+    return true;
+
+    // TODO CHECK TIMESTAMPS FROM ALL MESSAGES
+    // for (int i=0; i<size; i++) {
+        
+    // }
+}
+
+void addToRequestQueue(std::pair<int, int> req) {
+    requestQueue.push_back(req)
+    std::sort(requestQueue.begin(), requestQueue.end());
 }
 
 int main(int argc, char **argv)
