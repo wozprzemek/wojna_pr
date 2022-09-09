@@ -1,7 +1,7 @@
-#ifndef WATEK_KOMUNIKACYJNY_H
-#define WATEK_KOMUNIKACYJNY_H
+#ifndef COM_THREAD
+#define COM_THREAD
 
 /* wątek komunikacyjny: odbieranie wiadomości i reagowanie na nie poprzez zmiany stanu */
-void *startKomWatek(void *ptr);
+void *comLoop(void *ptr);
 
 #endif

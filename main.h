@@ -1,7 +1,7 @@
 #ifndef GLOBALH
 #define GLOBALH
-
 #define _GNU_SOURCE
+
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,68 +9,51 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <vector>
+#include <algorithm>
+
 /* odkomentować, jeżeli się chce DEBUGI */
 //#define DEBUG 
-/* boolean */
-#define TRUE 1
-#define FALSE 0
 
-/* używane w wątku głównym, determinuje jak często i na jak długo zmieniają się stany */
-#define STATE_CHANGE_PROB 50
-#define SEC_IN_STATE 2
+#define SEC_IN_STATE 1
+#define MIN_DAMAGE 1
+#define MAX_DAMAGE 10	
+#define N_DOCK 3
+#define N_MECH 10
 
-#define ROOT 0
+/* States */
+typedef enum {FIGHTING, WAITING_DOCK, WAITING_MECH, IN_REPAIR} state_t;
 
-/* stany procesu */
-typedef enum {InRun, InMonitor, InSend, InFinish} state_t;
-extern state_t stan;
+/* Messages */
+enum message_t {DOCK_REQ, DOCK_ACK, DOCK_REL, MECH_REQ, MECH_ACK, MECH_REL};
+
+/* Global process variables */
+extern state_t state;
 extern int rank;
 extern int size;
+extern int lamportTime;
+extern int damage;
+extern std::vector<int> dockACK;
+extern std::vector<int> mechACK;
+extern std::vector<int> dockStatus;
+extern std::vector<int> mechStatus;
+extern std::vector<int> requestQueue;
 
-/* Ile mamy kasy na składzie? */
-extern int money;
-
-/* stan globalny wykryty przez monitor */
-extern int globalState;
-/* ilu już odpowiedziało na GIVEMESTATE */
-extern int numberReceived;
-
-/* to może przeniesiemy do global... */
+/* Packet structure */
 #define FIELDNO 3
 typedef struct {
-    int lamportTs;  // lamport timestamp
+    int lamportTime;  // lamport timestamp
     int src;        // TODO
     int data;       // TODO
 } packet_t;
 
-extern MPI_Datatype MPI_PAKIET_T;
+extern MPI_Datatype MPI_PACKET_T;
 
-/* Typy wiadomości */
-#define DOCK_REQ 1      // dock request
-#define DOCK_ACK 2      // dock acknowledge
-#define DOCK_REL 3      // dock release
-#define MECH_REQ 4      // mechanic request
-#define MECH_ACK 5      // mechanic acknowledge
-#define MECH_REL 6      // mechanic release
+void updateLamportTime(int recv);
+bool dockAvailability();
+bool mechanicAvailability();
 
-/* macro debug - działa jak printf, kiedy zdefiniowano
-   DEBUG, kiedy DEBUG niezdefiniowane działa jak instrukcja pusta 
-   
-   używa się dokładnie jak printfa, tyle, że dodaje kolorków i automatycznie
-   wyświetla rank
-
-   w związku z tym, zmienna "rank" musi istnieć.
-
-   w printfie: definicja znaku specjalnego "%c[%d;%dm [%d]" escape[styl bold/normal;kolor [RANK]
-                                           FORMAT:argumenty doklejone z wywołania debug poprzez __VA_ARGS__
-					   "%c[%d;%dm"       wyczyszczenie atrybutów    27,0,37
-                                            UWAGA:
-                                                27 == kod ascii escape. 
-                                                Pierwsze %c[%d;%dm ( np 27[1;10m ) definiuje styl i kolor literek
-                                                Drugie   %c[%d;%dm czyli 27[0;37m przywraca domyślne kolory i brak pogrubienia (bolda)
-                                                ...  w definicji makra oznacza, że ma zmienną liczbę parametrów
-                                            
-*/
+/* Print formatting */
 #ifdef DEBUG
 #define debug(FORMAT,...) printf("%c[%d;%dm [%d]: " FORMAT "%c[%d;%dm\n",  27, (1+(rank/7))%2, 31+(6+rank)%7, rank, ##__VA_ARGS__, 27,0,37);
 #else
@@ -90,8 +73,4 @@ extern MPI_Datatype MPI_PAKIET_T;
 /* printf ale z kolorkami i automatycznym wyświetlaniem RANK. Patrz debug wyżej po szczegóły, jak działa ustawianie kolorków */
 #define println(FORMAT, ...) printf("%c[%d;%dm [%d]: " FORMAT "%c[%d;%dm\n",  27, (1+(rank/7))%2, 31+(6+rank)%7, rank, ##__VA_ARGS__, 27,0,37);
 
-/* wysyłanie pakietu, skrót: wskaźnik do pakietu (0 oznacza stwórz pusty pakiet), do kogo, z jakim typem */
-void sendPacket(packet_t *pkt, int destination, int tag);
-void changeState( state_t );
-void changeMoney( int );
 #endif

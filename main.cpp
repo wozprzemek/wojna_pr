@@ -2,20 +2,17 @@
 #include "main_thread.h"
 #include "com_thread.h"
 #include <pthread.h>
-#include <mpi.h> 
+#include <vector>
+#include <mpi.h>
 
 #define FIELDNO 3
 
-/* sem_init sem_destroy sem_post sem_wait */
-//#include <semaphore.h>
-/* flagi dla open */
-//#include <fcntl.h>
-
-state_t stan = InRun;
-int size, rank, money;
+state_t stan = state_t::FIGHTING; // initialize ship as fighting
+int size, rank, lamportTime, damage;
+vector<bool> dockACK, mechACK;
 MPI_Datatype MPI_PACKET_T;
-pthread_t comThread;
 
+pthread_t comThread;
 pthread_mutex_t stateMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t moneyMutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -83,6 +80,35 @@ void finalize() {
     MPI_Finalize();
 }
 
+void updateLamportTime(int recv) {
+    lamportTime = std::max(recv, lamportTime) + 1;
+}
+
+bool dockAvailability() {
+    // iterate over the dock process status list to find free docks
+    for (int i=0; i<size; i++) {
+        if (dockStatus[i] == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool mechanicAvailability() {
+    // iterate over the mechanic process status list and sum taken mechanics
+    int total = 0;
+    for (int i=0; i<size; i++) {
+        total += mechStatus[i];
+    }
+
+    if (total < N_MECH) {
+        return true
+    }
+    else {
+        return false;
+    }
+}
+
 int main(int argc, char **argv)
 {
     init(&argc, &argv);     // create the communication thread
@@ -91,72 +117,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
-// /* opis patrz main.h */
-// void sendPacket(packet_t *pkt, int destination, int tag)
-// {
-//     int freepkt = 0;
-//     if (pkt == 0)
-//     {
-//         pkt = malloc(sizeof(packet_t));
-//         freepkt = 1;
-//     }
-//     pkt->src = rank;
-//     MPI_Send(pkt, 1, MPI_PACKET_T, destination, tag, MPI_COMM_WORLD);
-//     if (freepkt)
-//         free(pkt);
-// }
-
-// void changeMoney(int newMoney)
-// {
-//     pthread_mutex_lock(&moneyMut);
-//     if (stan == InFinish)
-//     {
-//         pthread_mutex_unlock(&moneyMut);
-//         return;
-//     }
-//     debug("przed: %d", money)
-//         money += newMoney;
-//     debug("po: %d", money)
-//         pthread_mutex_unlock(&moneyMut);
-// }
-
-// void enterDock()
-// {
-//     pthread_mutex_lock(&moneyMut);
-//     if (stan == InFinish)
-//     {
-//         pthread_mutex_unlock(&moneyMut);
-//         return;
-//     }
-//     debug("przed: %d", money)
-//         money += newMoney;
-//     debug("po: %d", money)
-//         pthread_mutex_unlock(&moneyMut);
-// }
-
-// void getMechanics(int newMoney)
-// {
-//     pthread_mutex_lock(&moneyMut);
-//     if (stan == InFinish)
-//     {
-//         pthread_mutex_unlock(&moneyMut);
-//         return;
-//     }
-//     debug("przed: %d", money)
-//         money += newMoney;
-//     debug("po: %d", money)
-//         pthread_mutex_unlock(&moneyMut);
-// }
-
-// void changeState(state_t newState)
-// {
-//     pthread_mutex_lock(&stateMut);
-//     if (stan == InFinish)
-//     {
-//         pthread_mutex_unlock(&stateMut);
-//         return;
-//     }
-//     stan = newState;
-//     pthread_mutex_unlock(&stateMut);
-// }
