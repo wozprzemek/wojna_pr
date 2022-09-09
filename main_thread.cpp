@@ -6,7 +6,6 @@ void mainLoop()
 {
     srandom(rank);
     while (true) {
-
         switch (state) {
             case state_t::FIGHTING:
                 int fightingTime = rand() % 10;
@@ -24,7 +23,6 @@ void mainLoop()
                     updateLamportTime(0);
                 pthread_mutex_unlock(&stateMutex); 
 
-
                 /* Broadcast the request messages. */
                 for (int i = 0; i < size; i++) {
                     if (i != rank){
@@ -41,7 +39,21 @@ void mainLoop()
                 break;
 
             case state_t::WAITING_DOCK:
-                // TODO dock critical section
+                int free = 0;
+                // check if there are free docks
+                for (int i=0; i<size; i++) {
+                    if (dockStatus[i] == 0) {
+                        free++;
+                    }
+                }
+                
+                if (free > 0 && fullACK()) { // TODO fullACK
+                    
+                }
+                else {
+                    continue;
+                };
+                
                 break;
                 
             case state_t::WAITING_MECH:

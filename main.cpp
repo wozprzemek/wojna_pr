@@ -84,29 +84,8 @@ void updateLamportTime(int recv) {
     lamportTime = std::max(recv, lamportTime) + 1;
 }
 
-bool dockAvailability() {
-    // iterate over the dock process status list to find free docks
-    for (int i=0; i<size; i++) {
-        if (dockStatus[i] == 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool mechanicAvailability() {
-    // iterate over the mechanic process status list and sum taken mechanics
-    int total = 0;
-    for (int i=0; i<size; i++) {
-        total += mechStatus[i];
-    }
-
-    if (total < N_MECH) {
-        return true
-    }
-    else {
-        return false;
-    }
+bool fullACK() {
+    
 }
 
 int main(int argc, char **argv)
