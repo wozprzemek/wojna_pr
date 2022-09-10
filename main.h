@@ -55,6 +55,9 @@ void updateLamportTime(int recv);
 bool priority();
 void addToDockRequestQueue(std::pair<int, int>);
 
+void lockMutex();
+void unlockMutex();
+
 /* Print formatting */
 #ifdef DEBUG
 #define debug(FORMAT,...) printf("%c[%d;%dm [%d]: " FORMAT "%c[%d;%dm\n",  27, (1+(rank/7))%2, 31+(6+rank)%7, rank, ##__VA_ARGS__, 27,0,37);

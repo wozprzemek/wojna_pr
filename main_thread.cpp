@@ -11,27 +11,27 @@ void mainLoop()
                 int fightingTime = rand() % 10;
                 sleep(fightingTime); // fight for a random amount of time
 
-                pthread_mutex_lock(&stateMutex);
+                lockMutex();
                     damage = (rand() % (MAX_DAMAGE - MIN_DAMAGE + 1)) 
                     + MIN_DAMAGE; // add random damage to the ship
-                    state = state_t::WAITING_DOCK // change the state after fighting
-                pthread_mutex_unlock(&stateMutex);
+                    state = state_t::WAITING_DOCK; // change the state after fighting
+                unlockMutex();
 
                 packet_t *packet = (packet_t *) malloc(sizeof(packet_t)); // allocate packet
 
-                pthread_mutex_lock(&stateMutex);
+                lockMutex();
                     updateLamportTime(0); // update timestamp
-                pthread_mutex_unlock(&stateMutex); 
+                unlockMutex(); 
 
                 /* Broadcast the dock request messages. */
                 for (int i = 0; i < size; i++) {
                     if (i != rank){ // to all except the process itself
-                        pthread_mutex_lock(&stateMutex);
+                        lockMutex();
                             packet->lamportTime = lamportTime;
                             packet->inDock = 0;
                             packet->mechanicsTaken = 0;
                             MPI_Send(packet, 1, MPI_PACKET_T, i, message_t::DOCK_REQ, MPI_COMM_WORLD); // send dock request
-                        pthread_mutex_unlock(&stateMutex); 
+                        unlockMutex(); 
                     }
                 }
 
@@ -41,22 +41,22 @@ void mainLoop()
                 break;
 
             case state_t::WAITING_DOCK:
-                pthread_mutex_lock(&stateMutex);
-                int free = 0;
+                lockMutex();
+                int freeDocks = 0;
                 // check if there are free docks
                 for (int i=0; i<size; i++) {
                     if (dockStatus[i] == 0) {
-                        free++;
+                        freeDocks++;
                     }
                 }
                 
-                if (free >= 1 && priority()) { // there are free docks and the process received larger timestamps from all others (TODO)
-                    if (dockRequestQueue.size > 0) {
+                if (freeDocks >= 1 && priority()) { // there are free docks and the process received larger timestamps from all others (TODO)
+                    if (dockRequestQueue.size() > 0) {
                         if (dockRequestQueue.back().second == rank) { // process is at the top of the queue
 
                             dockStatus[rank] = 1; // add the dock to the dock status list
                             printf("DOCKING");
-                            state = state_t::WAITING_MECH // change the state once docked
+                            state = state_t::WAITING_MECH; // change the state once docked
 
                             updateLamportTime(0); // update timestamp
 
@@ -72,38 +72,38 @@ void mainLoop()
                             dockRequestQueue.pop_back(); // remove the request
                         }
                     }
-                    pthread_mutex_unlock(&stateMutex);
+                    unlockMutex();
                 }
                 else {
-                    pthread_mutex_unlock(&stateMutex);
+                    unlockMutex();
                     continue;
                 };
                 
                 break;
                 
             case state_t::WAITING_MECH:
-                pthread_mutex_lock(&stateMutex);
-                int free = 0;
+                lockMutex();
+                int freeMechanics = 0;
                 // check if there are enough free mechanics
                 for (int i=0; i<size; i++) {
                     if (mechStatus[i] == 0) {
-                        free++;
+                        freeMechanics++;
                     }
                 }
 
-                if (free >= damage && priority()) { // there are enough free mechanics based on the damage and the process received larger timestamps from all others
-                    if (mechRequestQueue.size > 0) {
+                if (freeMechanics >= damage && priority()) { // there are enough free mechanics based on the damage and the process received larger timestamps from all others
+                    if (mechRequestQueue.size() > 0) {
                         if (mechRequestQueue.back().second == rank) { // process is at the top of the queue
                             mechStatus[rank] = damage; // add the taken mechanics to the mechanic status list
-                            state = state_t::IN_REPAIR // change the state once access is granted
+                            state = state_t::IN_REPAIR; // change the state once access is granted
 
                             mechRequestQueue.pop_back(); // remove the request
                         }
                     }
-                    pthread_mutex_unlock(&stateMutex);
+                    unlockMutex();
                 }
                 else {
-                    pthread_mutex_unlock(&stateMutex);
+                    unlockMutex();
                     continue;
                 };
 
@@ -111,7 +111,7 @@ void mainLoop()
 
             case state_t::IN_REPAIR:
                 sleep(damage);
-                pthread_mutex_lock(&stateMutex);
+                lockMutex();
 
                     damage = 0;
                     dockStatus[rank] = 0;
@@ -120,11 +120,11 @@ void mainLoop()
 
                     updateLamportTime(0); // update timestamp
 
-                pthread_mutex_unlock(&stateMutex);
+                unlockMutex();
 
                 packet_t *packet = (packet_t *) malloc(sizeof(packet_t));
 
-                // pthread_mutex_lock(&stateMutex);
+                // lockMutex();
 
                 /* Broadcast the dock and mechanic release messages. */
                 for (int i = 0; i < size; i++) {
@@ -136,7 +136,7 @@ void mainLoop()
                         MPI_Send(packet, 1, MPI_PACKET_T, i, message_t::MECH_REL, MPI_COMM_WORLD); // send mechanics release
                     }
                 }  
-                // pthread_mutex_unlock(&stateMutex);
+                // unlockMutex();
                 free(packet);
                 break;
 

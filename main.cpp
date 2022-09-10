@@ -9,12 +9,20 @@
 
 state_t stan = state_t::FIGHTING; // initialize ship as fighting
 int size, rank, lamportTime, damage;
-vector<bool> dockACK, mechACK;
+std::vector<bool> dockACK, mechACK;
 MPI_Datatype MPI_PACKET_T;
 
 pthread_t comThread;
 pthread_mutex_t stateMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t moneyMutex = PTHREAD_MUTEX_INITIALIZER;
+
+void lockMutex() {
+    pthread_mutex_lock(&stateMutex);
+}
+
+void unlockMutex() {
+    pthread_mutex_unlock(&stateMutex);
+}
 
 void check_thread_support(int provided)
 {
@@ -53,7 +61,7 @@ void initCustomType() {
     offsets[1] = offsetof(packet_t, src);
     offsets[2] = offsetof(packet_t, data);
 
-    MPI_Type_create_struct(nItems, blockleblockLengthsngths, offsets, types, &MPI_PACKET_T);
+    MPI_Type_create_struct(nItems, blockLengths, offsets, types, &MPI_PACKET_T);
     MPI_Type_commit(&MPI_PACKET_T);
 }
 
@@ -68,7 +76,7 @@ void init(int *argc, char ***argv) {
 
     srand(rank);
 
-    pthread_create(&comThread, NULL, startKomWatek, 0);
+    pthread_create(&comThread, NULL, comLoop, 0);
     printf("Init done.");
 }
 
@@ -94,7 +102,7 @@ bool priority() {
 }
 
 void addToDockRequestQueue(std::pair<int, int> req) {
-    dockRequestQueue.push_back(req)
+    dockRequestQueue.push_back(req);
     std::sort(dockRequestQueue.begin(), dockRequestQueue.end(), std::greater<>());
 }
 
