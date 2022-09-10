@@ -93,9 +93,9 @@ bool priority() {
     // }
 }
 
-void addToRequestQueue(std::pair<int, int> req) {
-    requestQueue.push_back(req)
-    std::sort(requestQueue.begin(), requestQueue.end());
+void addToDockRequestQueue(std::pair<int, int> req) {
+    dockRequestQueue.push_back(req)
+    std::sort(dockRequestQueue.begin(), dockRequestQueue.end(), std::greater<>());
 }
 
 int main(int argc, char **argv)

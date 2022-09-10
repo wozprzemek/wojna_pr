@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 /* odkomentować, jeżeli się chce DEBUGI */
 //#define DEBUG 
@@ -37,21 +38,22 @@ extern std::vector<int> dockACK;
 extern std::vector<int> mechACK;
 extern std::vector<int> dockStatus;
 extern std::vector<int> mechStatus;
-extern std::vector<std::pair<int, int>> requestQueue;
+extern std::vector<std::pair<int, int>> dockRequestQueue;
+extern std::vector<std::pair<int, int>> mechRequestQueue;
 
 /* Packet structure */
 #define FIELDNO 3
 typedef struct {
-    int lamportTime;  // lamport timestamp
-    int src;        // TODO
-    int data;       // TODO
+    int lamportTime;        // lamport timestamp
+    int inDock;             // is the ship in dock
+    int mechanicsTaken;     // number of mechanics taken
 } packet_t;
 
 extern MPI_Datatype MPI_PACKET_T;
 
 void updateLamportTime(int recv);
 bool priority();
-void addToRequestQueue(std::pair<int, int>);
+void addToDockRequestQueue(std::pair<int, int>);
 
 /* Print formatting */
 #ifdef DEBUG
