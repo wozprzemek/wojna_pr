@@ -44,7 +44,9 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp",
-        "C_Cpp.errorSquiggles": "Enabled"
-
+        "C_Cpp.errorSquiggles": "Enabled",
+        "optional": "cpp",
+        "fstream": "cpp",
+        "sstream": "cpp"
     }
 }

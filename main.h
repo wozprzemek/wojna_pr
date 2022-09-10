@@ -23,7 +23,7 @@
 #define N_MECH 10
 
 /* States */
-typedef enum {FIGHTING, WAITING_DOCK, WAITING_MECH, IN_REPAIR} state_t;
+typedef enum {FIGHTING, WAITING_DOCK, WAITING_MECH, REPAIRING} state_t;
 
 /* Messages */
 enum message_t {DOCK_REQ, DOCK_ACK, DOCK_REL, MECH_REQ, MECH_ACK, MECH_REL};
@@ -36,8 +36,8 @@ extern int lamportTime;
 extern int damage;
 extern std::vector<int> dockACK;
 extern std::vector<int> mechACK;
-extern std::vector<int> dockStatus;
-extern std::vector<int> mechStatus;
+extern std::vector<int> dockStatus; // 0 - free, 1 - taken
+extern std::vector<int> mechStatus; // 0 - free, 1 or more - taken
 extern std::vector<std::pair<int, int>> dockRequestQueue;
 extern std::vector<std::pair<int, int>> mechRequestQueue;
 
@@ -52,8 +52,8 @@ typedef struct {
 extern MPI_Datatype MPI_PACKET_T;
 
 void updateLamportTime(int recv);
-bool priority();
-void addToDockRequestQueue(std::pair<int, int>);
+bool priority(std::vector<int> &ACKList, std::vector<std::pair<int, int>> &requestQueue);
+void addToRequestQueue(std::pair<int, int> req, std::vector<std::pair<int, int>> &requestQueue);
 
 void lockMutex();
 void unlockMutex();

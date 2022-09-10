@@ -76,6 +76,11 @@ void init(int *argc, char ***argv) {
 
     srand(rank);
 
+    dockStatus.resize(size, 0);
+    mechStatus.resize(size, 0);
+    dockACK.resize(size, 0);
+    mechACK.resize(size, 0);
+
     pthread_create(&comThread, NULL, comLoop, 0);
     printf("Init done.");
 }
@@ -92,18 +97,24 @@ void updateLamportTime(int recv) {
     lamportTime = std::max(recv, lamportTime) + 1;
 }
 
-bool priority() {
-    return true;
+bool priority(std::vector<int> ACKList, std::vector<std::pair<int, int>> requestQueue) {
+    for (int i = 0; i < size; i++) {
+        if (i != rank && ACKList[i] == 0) {
+            return false;
+        }
+    }
+    if (requestQueue.size() > 0) {
+        if (requestQueue.back().second == rank) { // process is at the top of the queue
+            return true;
+        }
+    }
 
-    // TODO CHECK TIMESTAMPS FROM ALL MESSAGES
-    // for (int i=0; i<size; i++) {
-        
-    // }
+    return false;
 }
 
-void addToDockRequestQueue(std::pair<int, int> req) {
-    dockRequestQueue.push_back(req);
-    std::sort(dockRequestQueue.begin(), dockRequestQueue.end(), std::greater<>());
+void addToRequestQueue(std::pair<int, int> req, std::vector<std::pair<int, int>> requestQueue) {
+    requestQueue.push_back(req);
+    std::sort(requestQueue.begin(), requestQueue.end(), std::greater<>());
 }
 
 int main(int argc, char **argv)
