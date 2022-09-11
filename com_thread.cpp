@@ -7,14 +7,15 @@ void *comLoop(void *ptr) {
     packet_t packet;
 
     while (true) {
+        debug("Waiting for message. [debug]");
+        println("Waiting for message. [println]");
         MPI_Recv(&packet, 1, MPI_PACKET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         switch (status.MPI_TAG) {
             case message_t::DOCK_REQ: 
                 lockMutex();
                     updateLamportTime(packet.lamportTime); // update timestamp
+                    addToRequestQueue(std::make_pair(packet.lamportTime, status.MPI_SOURCE), dockRequestQueue); // add the request to the queue
                 unlockMutex();
-
-                addToRequestQueue(std::make_pair(packet.lamportTime, status.MPI_SOURCE), dockRequestQueue); // add the request to the queue
 
                 packet.lamportTime = lamportTime;
                 packet.inDock = dockStatus[rank];
@@ -28,6 +29,7 @@ void *comLoop(void *ptr) {
                 lockMutex();
                     updateLamportTime(packet.lamportTime); // update timestamp
                     dockACK[status.MPI_SOURCE] = 1; // add the ACK to the dock ACK list
+                    // maybe a pause mechanism here?
                 unlockMutex();
                 
             break;
@@ -49,9 +51,8 @@ void *comLoop(void *ptr) {
             case message_t::MECH_REQ: 
                 lockMutex();
                     updateLamportTime(packet.lamportTime); // update timestamp
+                    addToRequestQueue(std::make_pair(packet.lamportTime, status.MPI_SOURCE), mechRequestQueue); // add the request to the queue
                 unlockMutex();
-
-                addToRequestQueue(std::make_pair(packet.lamportTime, status.MPI_SOURCE), mechRequestQueue); // add the request to the queue
 
                 packet.lamportTime = lamportTime;
                 packet.inDock = dockStatus[rank];

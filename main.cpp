@@ -6,10 +6,11 @@
 #include <mpi.h>
 
 #define FIELDNO 3
+#define DEBUG
 
 state_t stan = state_t::FIGHTING; // initialize ship as fighting
 int size, rank, lamportTime, damage;
-std::vector<bool> dockACK, mechACK;
+std::vector<int> dockACK, mechACK;
 MPI_Datatype MPI_PACKET_T;
 
 pthread_t comThread;
@@ -97,7 +98,7 @@ void updateLamportTime(int recv) {
     lamportTime = std::max(recv, lamportTime) + 1;
 }
 
-bool priority(std::vector<int> ACKList, std::vector<std::pair<int, int>> requestQueue) {
+bool priority(std::vector<int> &ACKList, std::vector<std::pair<int, int>> &requestQueue) {
     for (int i = 0; i < size; i++) {
         if (i != rank && ACKList[i] == 0) {
             return false;
@@ -112,7 +113,7 @@ bool priority(std::vector<int> ACKList, std::vector<std::pair<int, int>> request
     return false;
 }
 
-void addToRequestQueue(std::pair<int, int> req, std::vector<std::pair<int, int>> requestQueue) {
+void addToRequestQueue(std::pair<int, int> req, std::vector<std::pair<int, int>> &requestQueue) {
     requestQueue.push_back(req);
     std::sort(requestQueue.begin(), requestQueue.end(), std::greater<>());
 }
