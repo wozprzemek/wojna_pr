@@ -8,9 +8,10 @@
 #define FIELDNO 3
 #define DEBUG
 
-state_t stan = state_t::FIGHTING; // initialize ship as fighting
+state_t state = state_t::FIGHTING; // initialize ship as fighting
 int size, rank, lamportTime, damage;
-std::vector<int> dockACK, mechACK;
+std::vector<int> dockACK, mechACK, dockStatus, mechStatus;
+std::vector<std::pair<int, int>> dockRequestQueue, mechRequestQueue;
 MPI_Datatype MPI_PACKET_T;
 
 pthread_t comThread;
@@ -54,13 +55,13 @@ void check_thread_support(int provided)
 
 void initCustomType() {
     const int nItems = FIELDNO;
-    int blockLengths[FIELDNO] = {1, 1, 1};
-    MPI_Datatype types[FIELDNO] = {MPI_INT, MPI_INT, MPI_INT};
+    int blockLengths[nItems] = {1, 1, 1};
+    MPI_Datatype types[nItems] = {MPI_INT, MPI_INT, MPI_INT};
 
     MPI_Aint offsets[nItems];
-    offsets[0] = offsetof(packet_t, ts);
-    offsets[1] = offsetof(packet_t, src);
-    offsets[2] = offsetof(packet_t, data);
+    offsets[0] = offsetof(packet_t, lamportTimestamp);
+    offsets[1] = offsetof(packet_t, inDock);
+    offsets[2] = offsetof(packet_t, mechanicsTaken);
 
     MPI_Type_create_struct(nItems, blockLengths, offsets, types, &MPI_PACKET_T);
     MPI_Type_commit(&MPI_PACKET_T);
@@ -71,6 +72,8 @@ void init(int *argc, char ***argv) {
     int provided;
     MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided);
     check_thread_support(provided);
+
+    initCustomType();
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -104,7 +107,9 @@ bool priority(std::vector<int> &ACKList, std::vector<std::pair<int, int>> &reque
             return false;
         }
     }
+    // debug("Got all ACKS!, requestQueue size: %d", requestQueue.size());
     if (requestQueue.size() > 0) {
+        // debug("Rank on top of queue: %d, my rank: %d", requestQueue.back().second, rank);
         if (requestQueue.back().second == rank) { // process is at the top of the queue
             return true;
         }

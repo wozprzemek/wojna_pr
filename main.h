@@ -14,7 +14,7 @@
 #include <functional>
 
 /* odkomentować, jeżeli się chce DEBUGI */
-//#define DEBUG 
+#define DEBUG 
 
 #define SEC_IN_STATE 1
 #define MIN_DAMAGE 1
@@ -22,7 +22,7 @@
 #define MIN_FIGHTING_TIME 1
 #define MAX_FIGHTING_TIME 10
 #define N_DOCK 3
-#define N_MECH 10
+#define N_MECH 20
 
 /* States */
 typedef enum {FIGHTING, WAITING_DOCK, WAITING_MECH, REPAIRING} state_t;
@@ -46,7 +46,7 @@ extern std::vector<std::pair<int, int>> mechRequestQueue;
 /* Packet structure */
 #define FIELDNO 3
 typedef struct {
-    int lamportTime;        // lamport timestamp
+    int lamportTimestamp;        // lamport timestamp
     int inDock;             // is the ship in dock
     int mechanicsTaken;     // number of mechanics taken
 } packet_t;

@@ -47,6 +47,8 @@
         "C_Cpp.errorSquiggles": "Enabled",
         "optional": "cpp",
         "fstream": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "map": "cpp",
+        "cinttypes": "cpp"
     }
 }

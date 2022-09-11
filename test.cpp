@@ -15,7 +15,14 @@ int main(int argc, char **argv) {
 
     std::sort(v.begin(), v.end(), std::greater<>());
 
-
+    for (int i=0; i<v.size(); i++) {
+        std::cout << v[i].second << std::endl;
+        if (v[i].second == 1) {
+            std::cout << "A " << v[i].second << std::endl;
+            v.erase(v.begin() + i);
+        }
+    }
+    std::cout  << std::endl;
     for (int i=0; i<v.size(); i++) {
         std::cout << v[i].first << " " << v[i].second << std::endl;
     }
