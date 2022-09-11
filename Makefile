@@ -1,4 +1,4 @@
-SOURCES=$(wildcard *.c)
+SOURCES=$(wildcard *.cpp)
 HEADERS=$(SOURCES:.cpp=.h)
 FLAGS=-DDEBUG -g
 
