@@ -2,9 +2,8 @@
 #include "main_thread.h"
 
 /* Main loop; takes care of handling states.*/
-void mainLoop()
-{
-    srand(rank);
+void mainLoop() {
+    srand(time(0) + rank);
     while (true) {
         switch (state) {
             case state_t::FIGHTING: {
@@ -40,7 +39,7 @@ void mainLoop()
                 }
 
                 lockMutex();
-                    addToRequestQueue(std::make_pair(lamportTime, rank), dockRequestQueue); // add the request to the queue
+                    addToRequestQueue(std::make_pair(packet->lamportTimestamp, rank), dockRequestQueue); // add the request to the queue
                     debug("Added (%d, %d) to dock request queue.", lamportTime, rank);
                 unlockMutex();
 
@@ -83,16 +82,15 @@ void mainLoop()
                             }
                         }
 
-                        lockMutex();
-                            addToRequestQueue(std::make_pair(lamportTime, rank), mechRequestQueue); // add the request to the queue
-                            debug("Added (%d, %d) to mech request queue.", lamportTime, rank);
-                        unlockMutex();
+                        addToRequestQueue(std::make_pair(lamportTime, rank), mechRequestQueue); // add the request to the queue
+                        debug("Added (%d, %d) to mech request queue.", lamportTime, rank);
 
                         dockRequestQueue.pop_back(); // remove the request
                         free(packet);
                     unlockMutex();
                 } else {
                     unlockMutex();
+                    wait();
                     continue; // warning
                 };
                 
@@ -120,13 +118,14 @@ void mainLoop()
                 }
                 else {
                     unlockMutex();
+                    wait();
                     continue;
                 };
 
                 } break;
 
             case state_t::REPAIRING: {
-                sleep(1);
+                sleep(damage);
                 lockMutex();
                     damage = 0;
                     dockStatus[rank] = 0;

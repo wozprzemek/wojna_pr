@@ -34,6 +34,9 @@ void *comLoop(void *ptr) {
                     dockACK[status.MPI_SOURCE] = 1; // add the ACK to the dock ACK list
                     // maybe a pause mechanism here?
                 unlockMutex();
+                if(state == state_t::WAITING_DOCK){
+                    signal();
+                }
                 
             break;
 
@@ -49,6 +52,9 @@ void *comLoop(void *ptr) {
                         }
                     }
                 unlockMutex();
+                if(state == state_t::WAITING_DOCK){
+                    signal();
+                }
                 
             break;
 
@@ -75,6 +81,9 @@ void *comLoop(void *ptr) {
                     updateLamportTime(packet.lamportTimestamp); // update timestamp
                     mechACK[status.MPI_SOURCE] = 1; // add the ACK to the mech ACK list
                 unlockMutex();
+                if(state == state_t::WAITING_MECH){
+                    signal();
+                }
 
             break;
 
@@ -90,6 +99,9 @@ void *comLoop(void *ptr) {
                         }
                     }
                 unlockMutex();
+                if(state == state_t::WAITING_MECH){
+                    signal();
+                }
                
             break;
 

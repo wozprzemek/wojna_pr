@@ -1,6 +1,6 @@
 #ifndef GLOBALH
 #define GLOBALH
-#define _GNU_SOURCE
+// #define _GNU_SOURCE
 
 #include <mpi.h>
 #include <stdio.h>
@@ -52,6 +52,9 @@ typedef struct {
 } packet_t;
 
 extern MPI_Datatype MPI_PACKET_T;
+
+int wait();
+int signal();
 
 void updateLamportTime(int recv);
 bool priority(std::vector<int> &ACKList, std::vector<std::pair<int, int>> &requestQueue);

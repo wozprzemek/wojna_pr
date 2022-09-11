@@ -16,7 +16,8 @@ MPI_Datatype MPI_PACKET_T;
 
 pthread_t comThread;
 pthread_mutex_t stateMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t moneyMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t condMutex = PTHREAD_MUTEX_INITIALIZER;
 
 void lockMutex() {
     pthread_mutex_lock(&stateMutex);
@@ -24,6 +25,14 @@ void lockMutex() {
 
 void unlockMutex() {
     pthread_mutex_unlock(&stateMutex);
+}
+
+int wait() {
+    return pthread_cond_wait(&cond, &condMutex);
+}
+
+int signal() {
+    return pthread_cond_signal(&cond);
 }
 
 void check_thread_support(int provided)
@@ -78,7 +87,7 @@ void init(int *argc, char ***argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    srand(rank);
+    srand(time(0) + rank);
 
     dockStatus.resize(size, 0);
     mechStatus.resize(size, 0);
