@@ -14,7 +14,7 @@
 #include <functional>
 
 /* odkomentować, jeżeli się chce DEBUGI */
-#define DEBUG 
+// #define DEBUG
 
 #define SEC_IN_STATE 1
 #define MIN_DAMAGE 1

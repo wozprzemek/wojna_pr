@@ -7,16 +7,16 @@ void mainLoop() {
     while (true) {
         switch (state) {
             case state_t::FIGHTING: {
-                debug("Started fighting.");
                 int fightingTime = (rand() % (MAX_FIGHTING_TIME - MIN_FIGHTING_TIME + 1)) 
                     + MIN_FIGHTING_TIME;
+                println("Fighting for %d seconds.", fightingTime);
                 sleep(fightingTime); // fight for a random amount of time
 
                 lockMutex();
                     damage = (rand() % (MAX_DAMAGE - MIN_DAMAGE + 1)) 
                     + MIN_DAMAGE; // add random damage to the ship
                     state = state_t::WAITING_DOCK; // change the state after fighting
-                    debug("Got %d damage.", damage);
+                    println("Got %d damage.", damage);
                 unlockMutex();
 
                 packet_t *packet = (packet_t *) malloc(sizeof(packet_t)); // allocate packet
@@ -44,7 +44,6 @@ void mainLoop() {
                 unlockMutex();
 
                 free(packet);
-                debug("Finished fighting.");
 
                 } break;
 
@@ -61,7 +60,7 @@ void mainLoop() {
                     if (freeDocks >= 1 && priority(dockACK, dockRequestQueue)) { // there are free docks and the process received larger timestamps from all others (TODO)
                         // dock critical section
                         dockStatus[rank] = 1; // claim a dock
-                        debug("DOCKING");
+                        println("Docking.");
                         state = state_t::WAITING_MECH; // change the state once docked
 
                         updateLamportTime(0); // update timestamp
@@ -97,6 +96,7 @@ void mainLoop() {
                 } break;
                 
             case state_t::WAITING_MECH: {
+                println("Waiting for mechanics.");
                 lockMutex();
                     int freeMechanics = N_MECH;
 
@@ -109,7 +109,6 @@ void mainLoop() {
 
                     if (freeMechanics >= damage && priority(mechACK, mechRequestQueue)) { // there are enough free mechanics based on the damage and the process received larger timestamps from all others
                         // mechanics critical section
-                        debug("REPAIRING");
                         mechStatus[rank] = damage; // add the taken mechanics to the mechanic status list
                         state = state_t::REPAIRING; // change the state once access is granted
 
@@ -125,6 +124,7 @@ void mainLoop() {
                 } break;
 
             case state_t::REPAIRING: {
+                println("Repairing ship for %d seconds.", damage);
                 sleep(damage);
                 lockMutex();
                     damage = 0;
@@ -152,10 +152,11 @@ void mainLoop() {
                 }  
                 // unlockMutex();
                 free(packet);
+                println("Ship repaired. Releasing dock and mechanics.");
                  }break;
 
             default: {
-                printf("Unknown state.");
+                debug("Unknown state.");
             }break;
         }
     }
