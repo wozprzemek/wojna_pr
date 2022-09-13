@@ -48,6 +48,7 @@ void mainLoop() {
                 } break;
 
             case state_t::WAITING_DOCK: {
+                println("Waiting for a free dock.");
                 lockMutex();
                     int freeDocks = 0;
                     // check if there are free docks
@@ -90,7 +91,7 @@ void mainLoop() {
                 } else {
                     unlockMutex();
                     wait();
-                    continue; // warning
+                    continue;
                 };
                 
                 } break;
